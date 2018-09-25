@@ -63,19 +63,15 @@ Theta2_grad = zeros(size(Theta2));
 %
 
 a1 = [ones(m,1) X];
-z2 = sigmoid(Theta1 * a1');
-a2 = [ones(m,1) z2'];
+z2 = sigmoid(a1 * Theta1');
 
+a2 = [ones(size(z2,1),1) z2];
+h_theta = sigmoid(a2*Theta2');
+a3 = h_theta;
+
+y_matrix = eye(num_labels)(y,:);
+J = (-sum(sum(y_matrix.*log(h_theta))) - sum(sum((1-y_matrix).*(log(1-h_theta)))))/m;
 z3 = Theta2 * a2';
-
-a3 = sigmoid(z3);
-h_theta = a3;
-
-yk = zeros(num_labels, m);
-for i=1:m
-    yk(y(i), i) = 1;
-end
-J = (1/m) * sum ( sum (  (-yk) .* log(h_theta)  -  (1-yk) .* log(1-h_theta) ));
 
 size_theta1 = size(Theta1,1); % 25
 size_theta2 = size(Theta2,1); % 10
@@ -104,6 +100,16 @@ t2 = Theta2(:,2:size(Theta2,2));
 Reg = lambda  * (sum( sum ( t1.^ 2 )) + sum( sum ( t2.^ 2 ))) / (2*m);
 
 J = J + Reg;
+
+% back propagation
+d3 = a3 - y;                                               % has same dimensions as a3
+d2 = (d3*Theta2).*[ones(size(z2,1),1) sigmoidGradient(z2)];     % has same dimensions as a2
+
+D1 = d2(:,2:end)' * a1;    % has same dimensions as Theta1
+D2 = d3' * a2;    % has same dimensions as Theta2
+
+Theta1_grad = Theta1_grad + (1/m) * D1;
+Theta2_grad = Theta2_grad + (1/m) * D2;
 
 % -------------------------------------------------------------
 
