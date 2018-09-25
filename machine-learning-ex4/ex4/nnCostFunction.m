@@ -77,21 +77,33 @@ for i=1:m
 end
 J = (1/m) * sum ( sum (  (-yk) .* log(h_theta)  -  (1-yk) .* log(1-h_theta) ));
 
+size_theta1 = size(Theta1,1); % 25
+size_theta2 = size(Theta2,1); % 10
+size_x = size(X, 2);          % 400
 
+reg = 0;
+reg1 = 0;
+reg2 = 0;
+for j=1:size_theta1
+  for k=1:size_x
+    reg1 += Theta1(j,k)^2;
+  end
+end
 
+for j=1:size_theta2
+  for k=1:size_theta1
+    reg2 += Theta2(j,k)^2;
+  end
+end
+reg = lambda / (2 * m) * (reg1 + reg2);
 
+t1 = Theta1(:,2:size(Theta1,2));
+t2 = Theta2(:,2:size(Theta2,2));
 
+% regularization formula
+Reg = lambda  * (sum( sum ( t1.^ 2 )) + sum( sum ( t2.^ 2 ))) / (2*m);
 
-
-
-
-
-
-
-
-
-
-
+J = J + Reg;
 
 % -------------------------------------------------------------
 
