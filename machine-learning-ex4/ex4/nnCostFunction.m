@@ -63,54 +63,59 @@ Theta2_grad = zeros(size(Theta2));
 %
 
 a1 = [ones(m,1) X];
-z2 = sigmoid(a1 * Theta1');
+z2 = (a1 * Theta1');
 
-a2 = [ones(size(z2,1),1) z2];
+a2 = [ones(size(z2,1),1) sigmoid(z2)];
 h_theta = sigmoid(a2*Theta2');
 a3 = h_theta;
 
 y_matrix = eye(num_labels)(y,:);
 J = (-sum(sum(y_matrix.*log(h_theta))) - sum(sum((1-y_matrix).*(log(1-h_theta)))))/m;
-z3 = Theta2 * a2';
 
-size_theta1 = size(Theta1,1); % 25
-size_theta2 = size(Theta2,1); % 10
-size_x = size(X, 2);          % 400
-
-reg = 0;
-reg1 = 0;
-reg2 = 0;
-for j=1:size_theta1
-  for k=1:size_x
-    reg1 += Theta1(j,k)^2;
-  end
-end
-
-for j=1:size_theta2
-  for k=1:size_theta1
-    reg2 += Theta2(j,k)^2;
-  end
-end
-reg = lambda / (2 * m) * (reg1 + reg2);
-
-t1 = Theta1(:,2:size(Theta1,2));
-t2 = Theta2(:,2:size(Theta2,2));
-
-% regularization formula
-Reg = lambda  * (sum( sum ( t1.^ 2 )) + sum( sum ( t2.^ 2 ))) / (2*m);
-
-J = J + Reg;
+reg = (lambda/(2*m))*((sum(sum(Theta1(:,2:end).^2))) + sum(sum(Theta2(:,2:end).^2)));
+J = J + reg;
 
 % back propagation
-d3 = a3 - y;                                               % has same dimensions as a3
-d2 = (d3*Theta2).*[ones(size(z2,1),1) sigmoidGradient(z2)];     % has same dimensions as a2
+%d3 = a3 - y;  % has same dimensions as a3
+%d2 = (d3*Theta2).*[ones(size(z2,1),1) sigmoidGradient(z2)];     % has same dimensions as a2
 
-D1 = d2(:,2:end)' * a1;    % has same dimensions as Theta1
-D2 = d3' * a2;    % has same dimensions as Theta2
+%D1 = d2(:,2:end)' * a1;    % has same dimensions as Theta1
+%D2 = d3' * a2;    % has same dimensions as Theta2
 
-Theta1_grad = Theta1_grad + (1/m) * D1;
-Theta2_grad = Theta2_grad + (1/m) * D2;
+%Theta1_grad = Theta1_grad + (1/m) * D1;
+%Theta2_grad = Theta2_grad + (1/m) * D2;
 
+%Theta1_grad(:,2:end) = Theta1_grad(:,2:end) + (lambda/m)*(Theta1(:,2:end));
+%Theta2_grad(:,2:end) = Theta2_grad(:,2:end) + (lambda/m)*(Theta2(:,2:end));
+
+for t = 1:m
+
+	% For the input layer, where l=1:
+	a1 = [1; X(t,:)'];
+
+	% For the hidden layers, where l=2:
+	z2 = Theta1 * a1;
+	a2 = [1; sigmoid(z2)];
+
+	z3 = Theta2 * a2;
+	a3 = sigmoid(z3);
+
+	yy = ([1:num_labels]==y(t))';
+	% For the delta values:
+	delta_3 = a3 - yy;
+
+	delta_2 = (Theta2' * delta_3) .* [1; sigmoidGradient(z2)];
+	delta_2 = delta_2(2:end); % Taking of the bias row
+
+	% delta_1 is not calculated because we do not associate error with the input    
+
+	% Big delta update
+	Theta1_grad = Theta1_grad + delta_2 * a1';
+	Theta2_grad = Theta2_grad + delta_3 * a2';
+end
+
+Theta1_grad = (1/m) * Theta1_grad + (lambda/m) * [zeros(size(Theta1, 1), 1) Theta1(:,2:end)];
+Theta2_grad = (1/m) * Theta2_grad + (lambda/m) * [zeros(size(Theta2, 1), 1) Theta2(:,2:end)];
 % -------------------------------------------------------------
 
 % =========================================================================
