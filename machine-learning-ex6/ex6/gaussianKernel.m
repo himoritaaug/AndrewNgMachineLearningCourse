@@ -15,7 +15,8 @@ sim = 0;
 %               sigma
 %
 %
-
+sqr = sum((x1 - x2) .^ 2);
+sim = exp(sqr / (2*sigma^2) * -1)
 
 
 
